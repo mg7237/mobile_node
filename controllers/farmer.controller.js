@@ -20,8 +20,9 @@ async function getOTP(req, res) {
 
     if (otp === 0 || otp === "" || otp === undefined || otp == null) {
         return res.json({ "success": false, "error": "No valid farmer found with the provided mobile number. Please correct and retry." });
+    } else if (otp === -1) {
+        return res.json({ "success": false, "error": "OTP not sent, please try again later." });
     }
-    console.log('getOTP');
     return res.json({ "success": true, "data": { "otp": otp } });
 }
 

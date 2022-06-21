@@ -1,5 +1,6 @@
 const sql = require('mssql');
 const config = require('../config/db.config');
+const contactFarmer = require('../utils/contact_farmer.js');
 
 async function generateOTP(mobile) {
     try {
@@ -12,7 +13,14 @@ async function generateOTP(mobile) {
         if (result. recordset.length > 0) {
             const otp = Math.floor(1000 + Math.random() * 9000);
             console.log('generated otp', otp);
-            return otp;
+    
+            if (await contactFarmer.SendOTP(mobile, otp)) {
+                return otp;
+            } else {
+                return -1;
+            }
+            
+           
         } else {
             return 0;
         }
