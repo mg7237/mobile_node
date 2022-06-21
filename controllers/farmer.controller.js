@@ -4,15 +4,10 @@ const model = require('../models/farmer.model');
 const farmerService = require('../services/farmer.service')
 
 async function getOTP(req, res) {
-    let mobile = req.params.mobile;
-    if (mobile === "") {
-        return res.status(400).json({
-            error: 'Missing mobile number'
-        });
-    } else if (mobile.length != 10) {
-        return res.json({ "success": false, "error": "Invalid Mobile Number, please enter 10 digits" });
-    } else if (isNaN(mobile)) {
-        return res.json({ "success": false, "error": "Invalid Mobile Number, please enter numeric value" });
+    const  mobile = req.params.mobile;
+    const validate = validateMobile(mobile);
+    if (!validate["success"]) {
+        return res.json(validate)
     }
     
     const otp = await farmerService.generateOTP(mobile);
@@ -27,12 +22,21 @@ async function getOTP(req, res) {
 }
 
 
-function getProfile(req, res) {
-    console.log('get profile');
-    res.status(200).json({"MMS":"MMT"});
+async function getProfile(req, res) {
+    const mobile = req.params.mobile;
+    console.log("mobile", mobile,req.params.mobile );
+    const validate = validateMobile(mobile);
+
+    if (!validate["success"]) {
+        return res.json(validate);
+    }
+    profile = farmerService.getFarmerProfile(mobile);
+     
+    return res.json(profile);
+    
 }
 
-function getDevices(req, res) {
+async function getDevices(req, res) {
       console.log('get devices');
   const farmerId = Number(req.params.farmerId);
 
@@ -44,6 +48,18 @@ function getDevices(req, res) {
 function postLogin(req, res) {
     console.log('post pro');
     res.status(200).send({"MMS":"MMT"});
+}
+
+function validateMobile( mobile) {
+    
+    if (mobile === "") {
+        return {"success": false, "message": 'Missing mobile number'};
+    } else if (mobile.length != 10) {
+        return { "success": false, "message": "Invalid Mobile Number, please enter 10 digits" };
+    } else if (isNaN(mobile)) {
+        return {"success": false, "message": "Invalid Mobile Number, please enter numeric value" };
+    }
+    return { "success": true};
 }
 module.exports = {
   postLogin,
