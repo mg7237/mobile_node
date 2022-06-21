@@ -19,21 +19,19 @@ app.use((req, res, next) => {
     return response;
 });
 
-function  validateAPI(request)  {
-    if (request.headers.API_KEY === '12345678') {
-        console.log('right'); 
-        return false;
-    } else {
-        console.log('left');
+function validateAPI(request) {
+ console.log(JSON.stringify(request.headers));
+    if (request.headers["api_key"] === "12345678") {
         return true;
+    } else {
+        return false;
     }
 }
 
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.json({success: false})
-    res.status(200).send({ "message": "Welcome to the machine!" });
+    res.send({ "message": "Welcome to the machine!" });
 });
   
 app.use('/farmer', farmerRouter);
