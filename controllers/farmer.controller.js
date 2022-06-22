@@ -1,5 +1,4 @@
 const { response } = require('express');
-const sql = require('mssql');
 const model = require('../models/farmer.model');
 const farmerService = require('../services/farmer.service')
 
@@ -30,8 +29,9 @@ async function getProfile(req, res) {
     if (!validate["success"]) {
         return res.json(validate);
     }
-    profile = farmerService.getFarmerProfile(mobile);
-     
+    profile = await farmerService.getFarmerProfile(mobile);
+    console.log("profile");
+    console.dir(profile);
     return res.json(profile);
     
 }
