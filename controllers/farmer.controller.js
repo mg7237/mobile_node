@@ -30,10 +30,7 @@ async function getProfile(req, res) {
         return res.json(validate);
     }
     profile = await farmerService.getFarmerProfile(mobile);
-    console.log("profile");
-    console.dir(profile);
     return res.json(profile);
-    
 }
 
 async function getDevices(req, res) {

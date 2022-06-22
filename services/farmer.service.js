@@ -31,25 +31,16 @@ async function getFarmerProfile(mobile) {
     try {
         await sql.connect(config.sqlConfig);
         validFarmerSql = 'Select * from Farmer Where (MobileNumberPrimary = ' + mobile + ' OR MobileNumberSecondary =' + mobile + ') AND DeleteYN != 1';
-        console.log(validFarmerSql);
         let result = await sql.query(validFarmerSql);
-        console.log("Result c ount" + result.recordset.length);
-        console.dir(result);
         let lResult = result.recordset;
         if (result.recordset.length > 0) {
-            console.log("max", result.recordset[0]["ID"]);
             getfarmLandsJson = await getfarmLands(result.recordset[0]["ID"]);
-            console.log('getfarmLandsJson');
-            console.dir(getfarmLandsJson);
-            console.dir(lResult);
             if (getfarmLandsJson["success"]) {
-                console.log('Finally success');
                 let data =
                 {
                     "farmer_id": lResult[0]["ID"], "name": lResult[0]["Name"], "lat": lResult[0]["Latitude"], "long": lResult[0]["Longitude"], "village_id": lResult[0]
                     ["VillageID"], farmlands: getfarmLandsJson["data"]
                 };
-                console.log('Finally success 2');
                 return {
                     "success": true, 
                     "data": data
@@ -71,45 +62,24 @@ async function getfarmLands(id) {
         if (id == undefined || id == "" || id == 0) {
             return { "success": false, "message": "Invalid Farmer Id" };
         } else {
-            strSQL = "Select * from FarmerFarmLandDetails where FarmerID = " + id + " AND DeleteYN != 1";
-            result = await sql.query(strSQL);
-            console.log('GetFarmLandDetails');
-            console.dir(result);
+            let strSQL = "Select * from FarmerFarmLandDetails where FarmerID = " + id + " AND DeleteYN != 1";
+            let result = await sql.query(strSQL);
             let farmLandId = 0;
             let farmLandName = "";
             let blocks = {};
             if (result.recordset.length > 0) {
                 let farmLands = new Array();
-                console.dir(farmLands);
-
+                
                 for (var i = 0; i < result.recordset.length; i++) {
-                    console.log('length', result.recordset[i]["ID"]);
                     farmLandId = result.recordset[i]["ID"];
                     farmLandName = result.recordset[i]["Name"];
-                  
-                    console.log(farmLandId, farmLandName);
-                    console.dir(blocks);
-                    getBlocksJson = await getBlocks(result.recordset[i]["ID"]);
-                    console.dir(getBlocksJson);
+               
+                    let getBlocksJson = await getBlocks(result.recordset[i]["ID"]);
+                    let blocks = [];
                     if (getBlocksJson["success"]) {
                         blocks = getBlocksJson["data"];
-                        console.log("blocks");
-                        console.dir(blocks);
                     }
-                    console.log('farmLands i', i);
-                    console.dir(farmLandId);
-                   
-                
-                    console.log('Check this field   ');
-                    console.log(farmLandId, farmLandName);
-                    console.dir(blocks)
-                    let farmland = new Farmland(farmLandId, farmLandName, blocks);
-                    console.dir(farmland);
-                    console.dir(farmLands);
-                    console.log('farmLands j');
-                    farmLands.push(farmland);
-                    console.log('length k','ere');
-                    console.dir(farmLands);
+                    farmLands.push({"farmland_id" : farmLandId, "farmland_name" : farmLandName, "blocks" : blocks});
                 }
             
                 return { "success": true, "data": farmLands };
@@ -132,15 +102,17 @@ async function getBlocks(id) {
         if (id == undefined || id == "" || id == 0) {
             return { "success": false, "message": "Invalid Block Id" };
         } else {
-            strSQL = "Select * from FarmerBlockDetails where FarmerFarmLandDetailsID = " + id + " AND DeleteYN != 1";
-            result = await sql.query(strSQL);
+            let strSQL = "Select * from FarmerBlockDetails where FarmerFarmLandDetailsID = " + id + " AND DeleteYN != 1";
+            let result = await sql.query(strSQL);
             if (result.recordset.length > 0) {
                 for (var i = 0; i < result.recordset.length; i++) {
-                    getPlotsJson = await getPlots(result.recordset[i]["ID"]);
+                    let getPlotsJson = await getPlots(result.recordset[i]["ID"]);
                     if (getPlotsJson["success"]) {
                         let plots = getPlotsJson["data"];
+                        blocks.push({ "id": result.recordset[i]["ID"], "name": result.recordset[i]["Name"], "plots": plots });
+                    } else {
+                        return ({ "success": false, "message": "Error while getting plots" });
                     }
-                    blocks.push({ id: result.recordset[i]["ID"], "name": result.recordset[i]["Name"], "plots": plots});
                 };
             }
         }
@@ -158,13 +130,11 @@ async function getBlocks(id) {
             if (id == undefined || id == "" || id == 0) {
                 return { "success": false, "message": "Invalid Block Id" };
             } else {
-                strSQL = "Select * from FarmerPlotDetails where FarmerBlockDetailsID = " + id + " AND DeleteYN != 1";
+                strSQL = "Select * from FarmerPlotsDetails where FarmerBlockDetailsID = " + id + " AND DeleteYN != 1";
                 let resultPlot = await sql.query(strSQL);
-                console.log('GetPlots');
-                console.dir(result);
                 if (resultPlot.recordset.length > 0) {
-                    for (var i = 0; i < result.recordset.length; i++) {
-                        plots.push(Plot(resultPlot.recordset[i]["ID"], resultPlot.recordset[i]["Name"]),);
+                    for (var i = 0; i < resultPlot.recordset.length; i++) {
+                        plots.push({ "id": resultPlot.recordset[i]["ID"], "name": resultPlot.recordset[i]["Name"]});
                     }
                 }
                 return { "success": true, "data": plots };
